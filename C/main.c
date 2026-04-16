@@ -1,3 +1,3 @@
-//
-// Created by freedom on 4/16/26.
-//
+#include <stdio.h>
+#include "Scheduling Algorithms/Round_Robin.h"
+#include "Scheduling Algorithms/SRTF.h"
