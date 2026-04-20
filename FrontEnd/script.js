@@ -72,8 +72,20 @@ function closeModal() {
 
 function submitAddProcess() {
     const name = document.getElementById("modal-process-name").value;
-    const arrival = parseInt(document.getElementById("modal-arrival").value) || 0;
-    const burst = parseInt(document.getElementById("modal-burst").value) || 0;
+    const arrival = parseInt(document.getElementById("modal-arrival").value);
+    const burst = parseInt(document.getElementById("modal-burst").value);
+
+    if (isNaN(arrival) || arrival < 0) {
+        alert("⚠️ Arrival Time must be 0 or a positive number!");
+        document.getElementById("modal-arrival").focus();
+        return;
+    }
+
+    if (isNaN(burst) || burst <= 0) {
+        alert("⚠️ CPU Burst must be a positive number (greater than 0)!");
+        document.getElementById("modal-burst").focus();
+        return;
+    }
 
     processes.push({ id: Date.now(), name, arrival, burst });
     nextProcessNumber++;
@@ -156,7 +168,13 @@ async function runSimulation() {
         return;
     }
 
-    const quantum = parseInt(document.getElementById("time-quantum").value) || 2;
+    const quantumVal = parseInt(document.getElementById("time-quantum").value);
+    if (isNaN(quantumVal) || quantumVal <= 0) {
+        alert("⚠️ Time Quantum must be a positive number (greater than 0)!");
+        document.getElementById("time-quantum").focus();
+        return;
+    }
+    const quantum = quantumVal;
 
     // Loading State — FIX: use getElementById بدل querySelector على onclick
     const runBtn = document.getElementById("run-simulation-btn");
@@ -196,6 +214,13 @@ async function runSimulation() {
 
 // ====================== Init ======================
 document.addEventListener("DOMContentLoaded", () => {
+    // ✅ 3 أمثلة افتراضية
+    processes = [
+        { id: Date.now() + 1, name: "Process1", arrival: 0, burst: 5 },
+        { id: Date.now() + 2, name: "Process2", arrival: 2, burst: 3 },
+        { id: Date.now() + 3, name: "Process3", arrival: 4, burst: 8 },
+    ];
+    nextProcessNumber = 4;
     renderTable();
     renderDemoGantt();
     switchTab('rr');
