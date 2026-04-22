@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU-Scheduling</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            content: [],
+            theme: { extend: {} }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+<div class="max-w-7xl mx-auto bg-white shadow-2xl rounded-3xl overflow-hidden min-h-screen">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-emerald-600 to-blue-700 text-white px-8 py-5 flex items-center justify-between">
+        <h1 class="text-3xl font-bold">CPU-Scheduling</h1>
+    </div>
+
+    <!-- Definition -->
+    <div class="px-8 pt-6">
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+            <p class="text-blue-800 font-medium">Definition (Please input your data here.)</p>
+        </div>
+
+        <!-- Time Quantum -->
+        <div class="flex items-center gap-3 mb-8">
+            <label class="font-semibold text-gray-700">TIME QUANTUM</label>
+            <input id="time-quantum" type="number" value="2" 
+                   class="w-24 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 text-center text-lg">
+        </div>
+
+        <!-- Processes Table -->
+        <table class="w-full mb-8">
+            <thead>
+                <tr class="border-b-2 border-gray-300">
+                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Process name</th>
+                    <th class="text-left py-4 px-6 font-semibold text-gray-700">Arrival</th>
+                    <th class="text-left py-4 px-6 font-semibold text-gray-700">CPU burst</th>
+                    <th class="w-16"></th>
+                </tr>
+            </thead>
+            <tbody id="processes-tbody" class="text-gray-700"></tbody>
+        </table>
+
+        <div class="flex justify-between items-center">
+            <button id="add-process-btn"
+                    class="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-7 py-4 rounded-2xl font-semibold text-lg transition shadow-md">
+                <i class="fas fa-plus"></i>
+                ADD A NEW PROCESS
+            </button>
+            
+            <button id="run-simulation-btn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded-2xl font-semibold text-lg transition shadow-md">
+                RUN SIMULATION
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="px-8 mt-10 border-t border-gray-200">
+        <div class="flex border-b">
+            <button class="tab-button active px-10 py-5 font-semibold text-lg" data-tab="rr">ROUND ROBIN</button>
+            <button class="tab-button px-10 py-5 font-semibold text-lg text-gray-600" data-tab="srtf">SRTF COMPARISON</button>
+        </div>
+    </div>
+
+    <!-- Simulation Area -->
+    <div class="px-8 py-8" id="simulation-area">
+
+        <!-- Round Robin -->
+        <div id="rr-section" class="tab-content">
+            <h3 class="text-xl font-semibold mb-4 text-blue-600">GANTT CHART: ROUND ROBIN SIMULATION</h3>
+            <div id="gantt-rr" 
+                class="gantt-container h-36 rounded-3xl p-4 shadow-inner overflow-hidden flex items-center bg-gray-50 border border-blue-100">
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-3 px-2">
+                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span><span>70</span>
+            </div>
+
+            <div class="mt-10">
+                <h3 class="text-lg font-semibold mb-4 text-blue-600">Detailed Results (Round Robin)</h3>
+                <table class="w-full border-collapse bg-white shadow-md rounded-2xl overflow-hidden">
+                    <thead>
+                        <tr class="bg-blue-600 text-white">
+                            <th class="py-4 px-6 text-center">Process Name</th>
+                            <th class="py-4 px-6 text-center">Arrival</th>
+                            <th class="py-4 px-6 text-center">Burst</th>
+                            <th class="py-4 px-6 text-center">WT (RR)</th>
+                            <th class="py-4 px-6 text-center">TAT (RR)</th>
+                            <th class="py-4 px-6 text-center">RT (RR)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rr-table-body" class="text-blue-700 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SRTF -->
+        <div id="srtf-section" class="tab-content hidden">
+            <h3 class="text-xl font-semibold mb-4 text-orange-600">GANTT CHART: SRTF SIMULATION</h3>
+            <div id="gantt-srtf" 
+                class="gantt-container h-36 rounded-3xl p-4 shadow-inner overflow-hidden flex items-center bg-gray-50 border border-orange-100">
+            </div>
+            <div class="flex justify-between text-xs text-gray-400 mt-3 px-2">
+                <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span><span>70</span>
+            </div>
+
+            <div class="mt-10">
+                <h3 class="text-lg font-semibold mb-4 text-orange-600">Detailed Simulation Results (SRTF)</h3>
+                <table class="w-full border-collapse bg-white shadow-md rounded-2xl overflow-hidden">
+                    <thead>
+                        <tr class="bg-orange-500 text-white">
+                            <th class="py-4 px-6 text-center">Process Name</th>
+                            <th class="py-4 px-6 text-center">Arrival</th>
+                            <th class="py-4 px-6 text-center">Burst</th>
+                            <th class="py-4 px-6 text-center">WT (SRTF)</th>
+                            <th class="py-4 px-6 text-center">TAT (SRTF)</th>
+                            <th class="py-4 px-6 text-center">RT (SRTF)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="srtf-table-body" class="text-orange-700 text-sm"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div class="px-8 pb-12">
+        <h4 class="font-semibold mb-6 text-lg">Performance Comparison Summary</h4>
+        <div class="grid grid-cols-3 gap-6">
+            <div class="bg-white border rounded-3xl p-8 text-center">
+                <p class="text-gray-500 text-sm mb-2">AVG WAITING TIME</p>
+                <div id="avg-waiting" class="text-4xl font-bold text-gray-400">--</div>
+            </div>
+            <div class="bg-white border rounded-3xl p-8 text-center">
+                <p class="text-gray-500 text-sm mb-2">AVG TURNAROUND TIME</p>
+                <div id="avg-turnaround" class="text-4xl font-bold text-gray-400">--</div>
+            </div>
+            <div class="bg-white border rounded-3xl p-8 text-center">
+                <p class="text-gray-500 text-sm mb-2">AVG RUN TIME</p>
+                <div id="avg-runtime" class="text-4xl font-bold text-gray-400">--</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Add Process Modal -->
+<div id="add-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-white rounded-3xl w-full max-w-lg mx-4 shadow-2xl">
+        <div class="p-8">
+            <h3 class="text-2xl font-bold mb-6">Add New Process</h3>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Process Name</label>
+                    <input id="modal-process-name" type="text" readonly 
+                           class="w-full px-6 py-4 bg-gray-100 border border-gray-300 rounded-2xl text-lg font-medium">
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">Arrival Time</label>
+                        <input id="modal-arrival" type="number" value="0" 
+                               class="w-full px-6 py-4 border border-gray-300 rounded-2xl text-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-2">CPU Burst</label>
+                        <input id="modal-burst" type="number" value="0" 
+                               class="w-full px-6 py-4 border border-gray-300 rounded-2xl text-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="border-t flex">
+            <button id="modal-cancel-btn"
+                    class="flex-1 py-6 text-lg font-semibold text-gray-600 hover:bg-gray-100 rounded-bl-3xl">
+                Cancel
+            </button>
+            <button id="modal-add-btn"
+                    class="flex-1 py-6 text-lg font-semibold text-blue-600 hover:bg-blue-50 rounded-br-3xl">
+                Add Process
+            </button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

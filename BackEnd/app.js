@@ -94,6 +94,15 @@ const startAnalysis = (data) => {
 };
 
 const handleRequest = async (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+        res.statusCode = 204;
+        res.end();
+        return;
+    }
     if (req.url === "/api/analyze" && req.method === "POST") {
         try {
             const data = await parseJsonBody(req);
