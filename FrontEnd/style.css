@@ -1,0 +1,33 @@
+.gantt-container {
+    border: 3px solid #374151;
+    background: #1f2937;
+    position: relative;
+}
+
+.process-bar {
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    border-right: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+    min-width: 40px;
+}
+
+.process-bar:hover {
+    filter: brightness(1.15);
+}
+
+.tab-button {
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    color: #2563eb;
+    border-bottom: 4px solid #2563eb;
+}
