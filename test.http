@@ -1,0 +1,10 @@
+POST http://localhost:3000/api/analyze
+Content-Type: application/json
+
+{
+  "quantum": 3,
+  "processes": [
+    { "pid": "P1", "at": 0, "bt": 5 },
+    { "pid": "P2", "at": 1, "bt": 3 }
+  ]
+}

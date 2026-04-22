@@ -1,56 +1,114 @@
 #include <stdio.h>
+#include <string.h>
 #include "scheduler.h"
 
-// this is a placeholder main function to demonstrate how the C backend can be structured.
-// all the data if hardcoded for testing purposes.
+// Printing results in JSON format for both RR and SRTF
+void printInJsonForm (SimulationResult rrResult, SimulationResult srtfResult, Process processes[], int numOfProcesses) {
+    printf("{\n");
+    printf("  \"rr\": {\n");
+    printf("    \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f,\n", rrResult.avg_wt, rrResult.avg_tat, rrResult.avg_rt);
+    printf("    \"gantt\": [\n");
+    for (int i = 0; i < rrResult.gantt_count; i++) {
+        printf("      {\"pid\": \"%s\", \"start\": %d, \"end\": %d}%s\n", 
+               rrResult.gantt[i].process_id, rrResult.gantt[i].start_time, rrResult.gantt[i].end_time, 
+               (i == rrResult.gantt_count - 1) ? "" : ",");
+    }
+    printf("    ]\n  },\n");
+    printf("  \"srtf\": {\n");
+    printf("    \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f,\n", srtfResult.avg_wt, srtfResult.avg_tat, srtfResult.avg_rt);
+    printf("    \"gantt\": [\n");
+    for (int i = 0; i < srtfResult.gantt_count; i++) {
+        printf("      {\"pid\": \"%s\", \"start\": %d, \"end\": %d}%s\n", 
+               srtfResult.gantt[i].process_id, srtfResult.gantt[i].start_time, srtfResult.gantt[i].end_time, 
+               (i == srtfResult.gantt_count - 1) ? "" : ",");
+    }
+    printf("    ]\n  }\n");
+
+    printf("}\n");
+}
+
+// Check if the input data is recieved or not
+int inputsReceived (int argc) {
+    if (argc < 2) {
+        printf("{\"error\": \"data did not received\"}\n");
+        return 0;
+    }
+    return 1;
+}
+
+// Read quantum and processes data from the string data and store them in the respective arrays for RR and SRTF and check recieving the quantum
+int readQuantumAndProcesses (char *data, Process rrProcesses[], Process srtfProcesses[], int *numOfProcesses, int *quantum , int *readBytes ) {
+    if (sscanf(data, "%d %n", quantum, readBytes) != 1) {
+        printf("{\"error\": \"Quantum did not received\"}\n");
+        return 1;
+    }
+    data += *readBytes;
+
+    while (*numOfProcesses < MAX_PROCESSES && 
+           sscanf(data, " %s %d %d %n", 
+                  rrProcesses[*numOfProcesses].process_id, 
+                  &rrProcesses[*numOfProcesses].arrival_time, 
+                  &rrProcesses[*numOfProcesses].burst_time, 
+                  readBytes) == 3) {
+        
+        srtfProcesses[*numOfProcesses] = rrProcesses[*numOfProcesses];
+        (*numOfProcesses)++;
+        data += *readBytes;
+    }
+    return 0;
+}
+
+// Check for duplicated PIDs
+int duplicatedProcessesIDs (Process rrProcesses[], int numOfProcesses) {
+    for (int i = 0; i < numOfProcesses; i++) {
+        for (int j = i + 1; j < numOfProcesses; j++) {
+            if (strcmp(rrProcesses[i].process_id, rrProcesses[j].process_id) == 0) {
+                printf("{\"error\": \"duplicate process ID detected: %s\"}\n", rrProcesses[i].process_id);
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// check if the processes recieved or not
+int processesReceived(int numOfProcesses) {
+    if (numOfProcesses == 0) {
+        printf("{\"error\": \"processes did not received\"}\n");
+        return 1;
+    }
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
-	/* For quick backend testing, we only confirm input is received. */
-	if (argc > 1 && argv[1] != NULL) {
-		fprintf(stderr, "Received input from backend:\n%s\n", argv[1]);
-	}
 
-	printf("{\n");
-	printf("  \"rr\": {\n");
-	printf("    \"gantt\": [\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"start\": 0, \"end\": 2 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"start\": 2, \"end\": 4 },\n");
-	printf("      { \"pid\": \"P3\", \"arrival\": 2, \"start\": 4, \"end\": 6 },\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"start\": 6, \"end\": 8 },\n");
-	printf("      { \"pid\": \"P4\", \"arrival\": 3, \"start\": 8, \"end\": 10 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"start\": 10, \"end\": 12 },\n");
-	printf("      { \"pid\": \"P5\", \"arrival\": 4, \"start\": 12, \"end\": 14 },\n");
-	printf("      { \"pid\": \"P3\", \"arrival\": 2, \"start\": 14, \"end\": 16 }\n");
-	printf("    ],\n");
-	printf("    \"metrics\": { \"avg_wt\": 3.1, \"avg_tat\": 6.4, \"avg_rt\": 1.7 },\n");
-	printf("    \"processes\": [\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"burst\": 5, \"wt\": 3, \"tat\": 8, \"rt\": 0 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"burst\": 4, \"wt\": 5, \"tat\": 9, \"rt\": 1 },\n");
-	printf("      { \"pid\": \"P3\", \"arrival\": 2, \"burst\": 6, \"wt\": 4, \"tat\": 10, \"rt\": 2 },\n");
-	printf("      { \"pid\": \"P4\", \"arrival\": 3, \"burst\": 3, \"wt\": 2, \"tat\": 5, \"rt\": 5 },\n");
-	printf("      { \"pid\": \"P5\", \"arrival\": 4, \"burst\": 2, \"wt\": 1, \"tat\": 3, \"rt\": 8 }\n");
-	printf("    ]\n");
-	printf("  },\n");
-	printf("  \"srtf\": {\n");
-	printf("    \"gantt\": [\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"start\": 0, \"end\": 1 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"start\": 1, \"end\": 3 },\n");
-	printf("      { \"pid\": \"P4\", \"arrival\": 3, \"start\": 3, \"end\": 5 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"start\": 5, \"end\": 7 },\n");
-	printf("      { \"pid\": \"P5\", \"arrival\": 4, \"start\": 7, \"end\": 8 },\n");
-	printf("      { \"pid\": \"P3\", \"arrival\": 2, \"start\": 8, \"end\": 11 },\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"start\": 11, \"end\": 14 },\n");
-	printf("      { \"pid\": \"P4\", \"arrival\": 3, \"start\": 14, \"end\": 16 }\n");
-	printf("    ],\n");
-	printf("    \"metrics\": { \"avg_wt\": 2.2, \"avg_tat\": 5.1, \"avg_rt\": 0.9 },\n");
-	printf("    \"processes\": [\n");
-	printf("      { \"pid\": \"P1\", \"arrival\": 0, \"burst\": 5, \"wt\": 2, \"tat\": 7, \"rt\": 0 },\n");
-	printf("      { \"pid\": \"P2\", \"arrival\": 1, \"burst\": 4, \"wt\": 3, \"tat\": 7, \"rt\": 0 },\n");
-	printf("      { \"pid\": \"P3\", \"arrival\": 2, \"burst\": 6, \"wt\": 4, \"tat\": 10, \"rt\": 6 },\n");
-	printf("      { \"pid\": \"P4\", \"arrival\": 3, \"burst\": 3, \"wt\": 1, \"tat\": 4, \"rt\": 0 },\n");
-	printf("      { \"pid\": \"P5\", \"arrival\": 4, \"burst\": 2, \"wt\": 1, \"tat\": 3, \"rt\": 3 }\n");
-	printf("    ]\n");
-	printf("  }\n");
-	printf("}\n");
+    Process rrProcesses[MAX_PROCESSES];
+    Process srtfProcesses[MAX_PROCESSES];
+    int numOfProcesses = 0;
+    int quantum;
+    char *data = argv[1];
+    int readBytes = 0;
+    
+    if (!inputsReceived(argc)) {
+        return 1;
+    }
 
-	return 0;
+    if (readQuantumAndProcesses ( data , rrProcesses , srtfProcesses , &numOfProcesses , &quantum , &readBytes )) {
+        return 1;
+    }
+
+    if (duplicatedProcessesIDs ( rrProcesses , numOfProcesses )) {
+        return 1;
+    }
+
+    if (processesReceived(numOfProcesses)) {
+        return 1;
+    }
+
+    SimulationResult rrResult = run_rr(rrProcesses, numOfProcesses, quantum) ;
+    SimulationResult srtfResult = run_srtf(srtfProcesses, numOfProcesses) ;
+
+    printInJsonForm(rrResult, srtfResult, rrProcesses, numOfProcesses);
+
+    return 0;
 }
