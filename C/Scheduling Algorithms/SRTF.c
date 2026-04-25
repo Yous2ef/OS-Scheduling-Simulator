@@ -1,6 +1,7 @@
 #include "../scheduler.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include <limits.h>
 
 SimulationResult run_srtf(Process processes[], int num_processes) {
