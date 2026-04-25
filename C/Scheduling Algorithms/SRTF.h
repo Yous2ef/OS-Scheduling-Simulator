@@ -1,8 +1,0 @@
-//
-// Created by freedom on 4/16/26.
-//
-
-#ifndef OS_SCHEDULING_SIMULATOR_SRTF_H
-#define OS_SCHEDULING_SIMULATOR_SRTF_H
-
-#endif //OS_SCHEDULING_SIMULATOR_SRTF_H
