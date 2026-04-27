@@ -4,7 +4,7 @@ import { execFileSync } from "child_process";
 import { log } from "console";
 
 const PORT = 3000;
-const enginePath = "../C/main.exe";
+const enginePath = "../C/scheduler_engine";
 
 const parseJsonBody = (req) => {
     return new Promise((resolve, reject) => {
