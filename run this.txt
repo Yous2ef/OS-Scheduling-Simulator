@@ -1,0 +1,2 @@
+node run.js --dry-run
+node run.js 
