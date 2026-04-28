@@ -3,24 +3,76 @@
 #include "scheduler.h"
 
 // Printing results in JSON format for both RR and SRTF
-void printInJsonForm (SimulationResult rrResult, SimulationResult srtfResult, Process processes[], int numOfProcesses) {
+void printInJsonForm(SimulationResult rrResult, SimulationResult srtfResult, Process rrProcesses[], Process srtfProcesses[], int numOfProcesses) {
     printf("{\n");
+
+    //RR
     printf("  \"rr\": {\n");
-    printf("    \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f,\n", rrResult.avg_wt, rrResult.avg_tat, rrResult.avg_rt);
+    
+    //RR Gantt Chart
     printf("    \"gantt\": [\n");
     for (int i = 0; i < rrResult.gantt_count; i++) {
-        printf("      {\"pid\": \"%s\", \"start\": %d, \"end\": %d}%s\n", 
-               rrResult.gantt[i].process_id, rrResult.gantt[i].start_time, rrResult.gantt[i].end_time, 
-               (i == rrResult.gantt_count - 1) ? "" : ",");
+        int arrival = 0;
+        for (int j = 0; j < numOfProcesses; j++) {
+            if (strcmp(rrProcesses[j].process_id, rrResult.gantt[i].process_id) == 0) {
+                arrival = rrProcesses[j].arrival_time;
+                break;
+            }
+        }
+        printf("      {\"pid\": \"%s\", \"arrival\": %d, \"start\": %d, \"end\": %d}%s\n",
+               rrResult.gantt[i].process_id, arrival, rrResult.gantt[i].start_time, 
+               rrResult.gantt[i].end_time, (i == rrResult.gantt_count - 1) ? "" : ",");
+    }
+    printf("    ],\n");
+
+    // RR Metrics
+    printf("    \"metrics\": {\n");
+    printf("      \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f\n", 
+           rrResult.avg_wt, rrResult.avg_tat, rrResult.avg_rt);
+    printf("    },\n");
+
+    //Processes data
+    printf("    \"processes\": [\n");
+    for (int i = 0; i < numOfProcesses; i++) {
+        printf("      {\"pid\": \"%s\", \"arrival\": %d, \"burst\": %d, \"wt\": %d, \"tat\": %d, \"rt\": %d}%s\n",
+               rrProcesses[i].process_id, rrProcesses[i].arrival_time, rrProcesses[i].burst_time, 
+               rrProcesses[i].waiting_time, rrProcesses[i].turnaround_time, rrProcesses[i].response_time,
+               (i == numOfProcesses - 1) ? "" : ",");
     }
     printf("    ]\n  },\n");
+
+    //SRTF
     printf("  \"srtf\": {\n");
-    printf("    \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f,\n", srtfResult.avg_wt, srtfResult.avg_tat, srtfResult.avg_rt);
+    
+    //SRTF Gantt Chart
     printf("    \"gantt\": [\n");
     for (int i = 0; i < srtfResult.gantt_count; i++) {
-        printf("      {\"pid\": \"%s\", \"start\": %d, \"end\": %d}%s\n", 
-               srtfResult.gantt[i].process_id, srtfResult.gantt[i].start_time, srtfResult.gantt[i].end_time, 
-               (i == srtfResult.gantt_count - 1) ? "" : ",");
+        int arrival = 0;
+        for (int j = 0; j < numOfProcesses; j++) {
+            if (strcmp(srtfProcesses[j].process_id, srtfResult.gantt[i].process_id) == 0) {
+                arrival = srtfProcesses[j].arrival_time;
+                break;
+            }
+        }
+        printf("      {\"pid\": \"%s\", \"arrival\": %d, \"start\": %d, \"end\": %d}%s\n",
+               srtfResult.gantt[i].process_id, arrival, srtfResult.gantt[i].start_time, 
+               srtfResult.gantt[i].end_time, (i == srtfResult.gantt_count - 1) ? "" : ",");
+    }
+    printf("    ],\n");
+
+    // SRTF Metrics
+    printf("    \"metrics\": {\n");
+    printf("      \"avg_wt\": %.2f, \"avg_tat\": %.2f, \"avg_rt\": %.2f\n", 
+           srtfResult.avg_wt, srtfResult.avg_tat, srtfResult.avg_rt);
+    printf("    },\n");
+
+    //processes data
+    printf("    \"processes\": [\n");
+    for (int i = 0; i < numOfProcesses; i++) {
+        printf("      {\"pid\": \"%s\", \"arrival\": %d, \"burst\": %d, \"wt\": %d, \"tat\": %d, \"rt\": %d}%s\n",
+               srtfProcesses[i].process_id, srtfProcesses[i].arrival_time, srtfProcesses[i].burst_time, 
+               srtfProcesses[i].waiting_time, srtfProcesses[i].turnaround_time, srtfProcesses[i].response_time,
+               (i == numOfProcesses - 1) ? "" : ",");
     }
     printf("    ]\n  }\n");
 
@@ -108,7 +160,7 @@ int main(int argc, char *argv[]) {
     SimulationResult rrResult = run_rr(rrProcesses, numOfProcesses, quantum) ;
     SimulationResult srtfResult = run_srtf(srtfProcesses, numOfProcesses) ;
 
-    printInJsonForm(rrResult, srtfResult, rrProcesses, numOfProcesses);
+    printInJsonForm(rrResult, srtfResult, rrProcesses, srtfProcesses, numOfProcesses);
 
     return 0;
 }
