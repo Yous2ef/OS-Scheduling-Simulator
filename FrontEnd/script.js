@@ -635,6 +635,58 @@ function renderPerformanceSummary(rrMetrics, srtfMetrics) {
     }
 }
 
+// ====================== Analytical Conclusion ======================
+
+function renderAnalyticalConclusion(rrMetrics, srtfMetrics, quantumVal) {
+    if (!rrMetrics || !srtfMetrics) return;
+
+    const fairnessEl = document.getElementById("conc-fairness");
+    const timeSlicingEl = document.getElementById("conc-time-slicing");
+    const responseEl = document.getElementById("conc-response");
+    const quantumEl = document.getElementById("conc-quantum");
+    const srtfEl = document.getElementById("conc-srtf");
+
+    if (!fairnessEl || !timeSlicingEl || !responseEl || !quantumEl || !srtfEl) return;
+
+    const rrWT = rrMetrics.avg_wt.toFixed(2);
+    const srtfWT = srtfMetrics.avg_wt.toFixed(2);
+    const rrRT = rrMetrics.avg_rt.toFixed(2);
+    const srtfRT = srtfMetrics.avg_rt.toFixed(2);
+    const rrTAT = rrMetrics.avg_tat.toFixed(2);
+    const srtfTAT = srtfMetrics.avg_tat.toFixed(2);
+
+    // 1. Fairness vs efficiency
+    let efficiencyStr = parseFloat(rrWT) > parseFloat(srtfWT) 
+        ? `In this run, <strong class="text-orange-600">SRTF</strong> proved more efficient with an average waiting time of <strong>${srtfWT}</strong> compared to <strong class="text-blue-600">RR</strong>'s <strong>${rrWT}</strong>.` 
+        : `Interestingly, in this run, efficiency was relatively close or RR was better (RR: ${rrWT}, SRTF: ${srtfWT}).`;
+    
+    fairnessEl.innerHTML = `<strong>Round Robin</strong> ensures high fairness by sharing CPU time equally through time slicing, preventing starvation. However, frequent context switching can reduce overall efficiency. <strong>SRTF</strong> maximizes efficiency by prioritizing short jobs. ${efficiencyStr}`;
+
+    // 2. Effect of time slicing versus shortest-job preference
+    timeSlicingEl.innerHTML = `<strong>Time slicing (RR)</strong> guarantees regular CPU allocation, making it ideal for interactive systems. <strong>Shortest-job preference (SRTF)</strong> heavily optimizes for throughput by quickly finishing tasks. The simulation reflects this with RR yielding a turnaround time of <strong>${rrTAT}</strong>, while SRTF achieved <strong>${srtfTAT}</strong>.`;
+
+    // 3. Effect on first response time
+    let responseStr = parseFloat(rrRT) < parseFloat(srtfRT) 
+        ? `Here, <strong class="text-blue-600">RR</strong> provided a better average response time (<strong>${rrRT}</strong>) than <strong class="text-orange-600">SRTF</strong> (<strong>${srtfRT}</strong>), proving its strength for interactive responsiveness.`
+        : `Here, <strong class="text-orange-600">SRTF</strong> provided a better average response time (<strong>${srtfRT}</strong>) than <strong class="text-blue-600">RR</strong> (<strong>${rrRT}</strong>), likely because short jobs quickly cleared out before long ones.`;
+    
+    responseEl.innerHTML = `<strong>Round Robin</strong> generally provides a better and more predictable first response time. <strong>SRTF</strong> provides lightning-fast response times for short jobs. ${responseStr}`;
+
+    // 4. Effect of quantum size on Round Robin behavior
+    let qComment = quantumVal <= 3 
+        ? `The chosen small quantum of <strong>${quantumVal}</strong> heavily favors responsiveness but causes frequent context switches.` 
+        : `The chosen larger quantum of <strong>${quantumVal}</strong> reduces context switches but makes RR behave more like FCFS.`;
+
+    quantumEl.innerHTML = `A smaller quantum improves response time but increases context switching overhead, hurting overall throughput. A larger quantum reduces overhead but makes RR degrade into First-Come-First-Served (FCFS). ${qComment}`;
+
+    // 5. Whether SRTF gives a strong advantage to short jobs
+    let advantageStr = parseFloat(srtfWT) < parseFloat(rrWT)
+        ? `This simulation confirms the theory: SRTF achieved a lower average waiting time (<strong>${srtfWT}</strong> vs <strong>${rrWT}</strong>), strongly advantaging the shorter processes.`
+        : `In this specific scenario, the advantage wasn't as pronounced (SRTF WT: ${srtfWT} vs RR WT: ${rrWT}), which can happen depending heavily on arrival times.`;
+
+    srtfEl.innerHTML = `<strong>Yes</strong>, SRTF heavily favors short jobs by immediately preempting currently running longer jobs. ${advantageStr}`;
+}
+
 // ====================== Run Simulation ======================
 
 async function runSimulation() {
@@ -690,6 +742,7 @@ async function runSimulation() {
             );
 
         renderPerformanceSummary(rrMetrics, srtfMetrics);
+        renderAnalyticalConclusion(rrMetrics, srtfMetrics, quantumVal);
     } catch (error) {
         console.error("Error:", error);
         alert("❌ Failed to connect to server:\n" + error.message);
@@ -735,9 +788,83 @@ function handleControlClick(e) {
     }
 }
 
+// ====================== Test Scenarios ======================
+
+function loadScenario() {
+    const scenario = document.getElementById("scenario-select").value;
+    if (!scenario) {
+        alert("Please select a scenario to load.");
+        return;
+    }
+
+    processes = [];
+    let quantum = 2;
+
+    switch (scenario) {
+        case "A":
+            // Scenario A: Basic mixed workload
+            quantum = 4;
+            processes = [
+                { id: Date.now() + 1, name: "P1", arrival: 0, burst: 10 },
+                { id: Date.now() + 2, name: "P2", arrival: 2, burst: 5 },
+                { id: Date.now() + 3, name: "P3", arrival: 4, burst: 8 },
+                { id: Date.now() + 4, name: "P4", arrival: 5, burst: 2 }
+            ];
+            nextProcessNumber = 5;
+            break;
+        case "B":
+            // Scenario B: Quantum sensitivity case (small quantum)
+            // Same as A to show how a small quantum heavily increases context switches
+            quantum = 1;
+            processes = [
+                { id: Date.now() + 1, name: "P1", arrival: 0, burst: 10 },
+                { id: Date.now() + 2, name: "P2", arrival: 2, burst: 5 },
+                { id: Date.now() + 3, name: "P3", arrival: 4, burst: 8 },
+                { id: Date.now() + 4, name: "P4", arrival: 5, burst: 2 }
+            ];
+            nextProcessNumber = 5;
+            break;
+        case "C":
+            // Scenario C: Short-job-heavy case
+            // A long job arrived first, followed by many short jobs
+            quantum = 3;
+            processes = [
+                { id: Date.now() + 1, name: "P1", arrival: 0, burst: 15 },
+                { id: Date.now() + 2, name: "P2", arrival: 1, burst: 2 },
+                { id: Date.now() + 3, name: "P3", arrival: 2, burst: 1 },
+                { id: Date.now() + 4, name: "P4", arrival: 3, burst: 3 },
+                { id: Date.now() + 5, name: "P5", arrival: 4, burst: 2 }
+            ];
+            nextProcessNumber = 6;
+            break;
+        case "D":
+            // Scenario D: Interactive-style fairness case
+            // Multiple jobs arriving at the same time to test responsiveness
+            quantum = 2;
+            processes = [
+                { id: Date.now() + 1, name: "P1", arrival: 0, burst: 8 },
+                { id: Date.now() + 2, name: "P2", arrival: 0, burst: 8 },
+                { id: Date.now() + 3, name: "P3", arrival: 0, burst: 8 },
+                { id: Date.now() + 4, name: "P4", arrival: 0, burst: 8 }
+            ];
+            nextProcessNumber = 5;
+            break;
+        case "E":
+            // Scenario E: Validation case
+            // Invalid quantum and empty processes to show frontend validation
+            quantum = -2;
+            processes = [];
+            nextProcessNumber = 1;
+            break;
+    }
+
+    document.getElementById("time-quantum").value = quantum;
+    renderTable();
+}
+
 // ====================== Init ======================
 document.addEventListener("DOMContentLoaded", () => {
-    // ✅ 3 أمثلة افتراضية
+    // Default example
     processes = [
         { id: Date.now() + 1, name: "Process1", arrival: 0, burst: 5 },
         { id: Date.now() + 2, name: "Process2", arrival: 2, burst: 3 },
@@ -747,7 +874,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTable();
     switchTab("rr");
 
-    // ✅ ربط كل الأزرار بـ Event Listeners
     document
         .getElementById("add-process-btn")
         .addEventListener("click", addNewProcess);
@@ -760,15 +886,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document
         .getElementById("modal-add-btn")
         .addEventListener("click", submitAddProcess);
+    document
+        .getElementById("load-scenario-btn")
+        .addEventListener("click", loadScenario);
 
-    // ✅ ربط Tabs
     document.querySelectorAll(".tab-button").forEach((btn) => {
         btn.addEventListener("click", () =>
             switchTab(btn.getAttribute("data-tab")),
         );
     });
 
-    // ✅ إغلاق المودال لو الي ضغط برا
     document.getElementById("add-modal").addEventListener("click", (e) => {
         if (e.target === document.getElementById("add-modal")) closeModal();
     });

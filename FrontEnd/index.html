@@ -48,16 +48,32 @@
                     </p>
                 </div>
 
-                <!-- Time Quantum -->
-                <div class="flex items-center gap-3 mb-8">
-                    <label class="font-semibold text-gray-700"
-                        >TIME QUANTUM</label
-                    >
-                    <input
-                        id="time-quantum"
-                        type="number"
-                        value="2"
-                        class="w-24 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 text-center text-lg" />
+                <!-- Controls: Time Quantum & Scenarios -->
+                <div class="flex items-center justify-between mb-8">
+                    <!-- Time Quantum -->
+                    <div class="flex items-center gap-3">
+                        <label class="font-semibold text-gray-700">TIME QUANTUM</label>
+                        <input
+                            id="time-quantum"
+                            type="number"
+                            value="2"
+                            class="w-24 px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 text-center text-lg" />
+                    </div>
+
+                    <!-- Test Scenarios -->
+                    <div class="flex items-center gap-3">
+                        <select id="scenario-select" class="px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:border-blue-500 text-gray-700 bg-white font-medium">
+                            <option value="">-- Load Test Scenario --</option>
+                            <option value="A">Scenario A: Basic mixed workload</option>
+                            <option value="B">Scenario B: Quantum sensitivity case</option>
+                            <option value="C">Scenario C: Short-job-heavy case</option>
+                            <option value="D">Scenario D: Interactive-style fairness</option>
+                            <option value="E">Scenario E: Validation case</option>
+                        </select>
+                        <button id="load-scenario-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-2xl font-semibold transition shadow-sm border border-gray-200">
+                            Load
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Processes Table -->
@@ -460,6 +476,67 @@
                                 --</span
                             >
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Final Conclusion Area -->
+            <div class="px-8 pb-12">
+                <h4 class="font-semibold mb-6 text-lg text-gray-800">
+                    Final Conclusion & Analytical Comparison
+                </h4>
+                <div class="bg-white border border-gray-200 rounded-3xl p-8 space-y-6 shadow-sm">
+                    <div>
+                        <h5 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-balance-scale text-blue-600"></i> Fairness versus efficiency
+                        </h5>
+                        <p id="conc-fairness" class="text-gray-600 text-sm leading-relaxed">
+                            <strong>Round Robin</strong> ensures high fairness by sharing CPU time equally through time slicing, preventing starvation. However, frequent context switching can reduce overall efficiency. <strong>SRTF</strong> maximizes efficiency by prioritizing short jobs to achieve the minimum average waiting time, but sacrifices fairness as long processes may suffer from starvation.
+                        </p>
+                    </div>
+                    
+                    <hr class="border-gray-100">
+
+                    <div>
+                        <h5 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-clock text-blue-600"></i> Effect of time slicing versus shortest-job preference
+                        </h5>
+                        <p id="conc-time-slicing" class="text-gray-600 text-sm leading-relaxed">
+                            <strong>Time slicing (RR)</strong> guarantees regular CPU allocation, making it ideal for interactive systems where no process waits too long to be scheduled. <strong>Shortest-job preference (SRTF)</strong> heavily optimizes for throughput by quickly finishing tasks, but a steady stream of short tasks can indefinitely delay execution of longer ones.
+                        </p>
+                    </div>
+
+                    <hr class="border-gray-100">
+
+                    <div>
+                        <h5 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-stopwatch text-blue-600"></i> Effect on first response time
+                        </h5>
+                        <p id="conc-response" class="text-gray-600 text-sm leading-relaxed">
+                            <strong>Round Robin</strong> generally provides a better and more predictable first response time for all processes since they all get a turn within a bounded time frame. <strong>SRTF</strong> provides lightning-fast response times for short jobs, but significantly poorer response times for long jobs if short jobs keep arriving.
+                        </p>
+                    </div>
+
+                    <hr class="border-gray-100">
+
+                    <div>
+                        <h5 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-arrows-alt-h text-blue-600"></i> Effect of quantum size on Round Robin behavior
+                        </h5>
+                        <p id="conc-quantum" class="text-gray-600 text-sm leading-relaxed">
+                            A <strong>smaller quantum</strong> improves response time but increases context switching overhead, hurting overall throughput. A <strong>larger quantum</strong> reduces overhead but makes RR degrade into First-Come-First-Served (FCFS), which hurts interactive response times. The optimal quantum balances response time and context switch overhead.
+                        </p>
+                    </div>
+
+                    <hr class="border-gray-100">
+
+                    <div>
+                        <h5 class="text-base font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-bolt text-blue-600"></i> Whether SRTF gives a strong advantage to short jobs
+                        </h5>
+                        <p id="conc-srtf" class="text-gray-600 text-sm leading-relaxed">
+                            <strong>Yes</strong>, SRTF heavily favors short jobs by immediately preempting currently running longer jobs. This yields the mathematically optimal minimum average waiting time for the system, making it highly effective when the system has many quick tasks to complete, at the direct expense of long jobs.
+                        </p>
                     </div>
                 </div>
             </div>
